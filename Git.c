@@ -9,7 +9,7 @@ int main(){
     header *branch = cria_header();
     guarda_info(branch, "Master");
     header *commits = cria_header();
-    guarda_info(commits, "First commit");
+    guarda_info_commit(commits, "First commit", branch -> primeiro -> info);
 
     while(cond == 1){
         char *comando = (char*) malloc(50 * sizeof(char));

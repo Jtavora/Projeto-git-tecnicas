@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/tavora/Git-projeto",
+            "binaryPath": "/home/tavora/Git-projeto/prog.exe",
+            "binaryArgs": []
+        }
+    ]
+}
