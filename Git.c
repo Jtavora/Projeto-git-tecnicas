@@ -25,7 +25,9 @@ int main(){
 
         limpa(linha);
     }
-
+    
+    limpa(branch);
+    limpa_commit(commits);
     printf("Finalizando programa...\n");
     return 0;
 }

@@ -26,13 +26,14 @@ typedef struct hist_commits{
 
 header *cria_header(void);
 void limpa(header *h);
+void limpa_commit(header *h);
 void imprime_commits(header *h, char *branch_atual);
 header *separa_string(char *c);
 void guarda_info(header *h, char *info);
 void guarda_info_commit(header *h, char *info, char *branch_commit);
 void verifica_comando(header *comando, header *branch, header *commits);
 void f_commit(header *h, header *commits, char *branch_atual);
-void f_branch(header *h, header *branch);
+void f_branch(header *h, header *branch, header *commits);
 void f_checkout(header *h, header *branch);
 void f_merge(header *h, char *branch_atual, char *branch_merge);
 void f_log(header *h, header *commits, header *branch);

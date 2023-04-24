@@ -95,7 +95,7 @@ void verifica_comando(header *comando, header *branch, header *commits){
         return;
     }else{
         if(strcmp(comando -> primeiro -> proximo -> info, branch_cod) == 0){
-            f_branch(comando, branch);
+            f_branch(comando, branch, commits);
         }else if(strcmp(comando -> primeiro -> proximo -> info, commit) == 0){
             f_commit(comando, commits, branch -> primeiro -> info);
         }else if(strcmp(comando -> primeiro -> proximo -> info, checkout) == 0){
@@ -134,14 +134,24 @@ void f_log(header *h, header *commits, header *branch){
     }
 }
 
-void f_branch(header *h, header *branch){
+void f_branch(header *h, header *branch, header *commits){
     char *branch_cod = "branch";
+    char *master = "Master";
 
     if(strcmp(h -> ultimo -> info, branch_cod) == 0){
-        printf("Comando invalido!\n");
+        for(encad *p = branch -> primeiro; p != NULL; p = p -> proximo){
+            printf("%p %s\n", p, p -> info);
+        }
+
     }else{
         guarda_info(branch, h -> ultimo -> info);
         printf("Branch '%s' criada com sucesso!\n", branch -> ultimo -> info);
+
+        for(com *p = commits -> prim; p != NULL; p = p -> proximo){
+            if(strcmp(p -> branch_do_commit, master) == 0){
+                guarda_info_commit(commits, p -> info, h -> ultimo -> info);
+            }
+        }
     }
 }
 
@@ -169,7 +179,13 @@ void f_merge(header *h, char *branch_atual, char *branch_merge){
     printf("Mergeando branch '%s' com branch '%s'.\n", branch_atual, branch_merge);
 
     for(com *p = h -> prim; p != NULL; p = p -> proximo){
-        if(strcmp(p -> branch_do_commit, branch_atual) == 0 || strcmp(p -> branch_do_commit, branch_merge) == 0){
+        if(strcmp(p -> branch_do_commit, branch_merge) == 0){
+            guarda_info_commit(h, p -> info, branch_atual);
+        }
+    }
+
+    for(com *p = h -> prim; p != NULL; p = p -> proximo){
+        if(strcmp(p -> branch_do_commit, branch_atual) == 0){
             printf("%p %s\n", p, p -> info);
         }
     }
@@ -179,6 +195,24 @@ void f_merge(header *h, char *branch_atual, char *branch_merge){
 void limpa(header *h){
     encad *p = h -> primeiro;
     encad *aux;
+
+    if(p == NULL){
+        printf("\nLista vazia!\n\n");
+        return;
+    }
+
+    while(p != NULL){
+        aux = p -> proximo;
+        free(p);
+        p = aux;
+    }
+
+    free(h);
+}
+
+void limpa_commit(header *h){
+    com *p = h -> prim;
+    com *aux;
 
     if(p == NULL){
         printf("\nLista vazia!\n\n");

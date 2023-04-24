@@ -1,4 +1,4 @@
-Projeto feito para materia tecnas de programacao.
+Projeto feito para materia tecnicas de programacao.
 "imitando" os comandos do git.
 
 
