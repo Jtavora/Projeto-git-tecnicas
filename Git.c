@@ -13,8 +13,10 @@ int main(){
 
     while(cond == 1){
         char *comando = (char*) malloc(50 * sizeof(char));
+
         printf("User@PC:$ ");
         gets(comando);
+        
         if(strcmp(comando, quit) == 0){
             break;
         }

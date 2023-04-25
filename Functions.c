@@ -88,35 +88,62 @@ void verifica_comando(header *comando, header *branch, header *commits){
     char *checkout = "checkout";
     char *merge = "merge";
     char *log = "log";
+    char *clear = "clear";
 
+    if(strcmp(comando -> primeiro -> info, clear) == 0 && strcmp(comando -> ultimo -> info, clear) == 0){
+        f_clear();
+        return;
+    }
 
     if(strcmp(comando -> primeiro -> info, git) != 0 || comando -> ultimo == comando -> primeiro){
         printf("Comando nao reconhecido!\n");
         return;
+
     }else{
         if(strcmp(comando -> primeiro -> proximo -> info, branch_cod) == 0){
             f_branch(comando, branch, commits);
+
         }else if(strcmp(comando -> primeiro -> proximo -> info, commit) == 0){
             f_commit(comando, commits, branch -> primeiro -> info);
+
         }else if(strcmp(comando -> primeiro -> proximo -> info, checkout) == 0){
             f_checkout(comando, branch);
+
         }else if(strcmp(comando -> primeiro -> proximo -> info, merge) == 0){
-            f_merge(commits, branch -> primeiro -> info, comando -> ultimo -> info);
+            f_merge(commits, branch -> primeiro -> info, comando -> ultimo -> info, branch);
+
         }else if(strcmp(comando -> primeiro -> proximo -> info, log) == 0){
             f_log(comando, commits, branch);
+
         }else{
             printf("Comando nao reconhecido!\n");
             return;
+
         }
     }
 }
 
+void f_clear(void){
+
+    system("clear");
+
+}
+
 void f_commit(header *h, header *commits, char *branch_atual){
     char *err = "-m";
+    char *err2 = "commit";
 
-    if(strcmp(h -> ultimo -> info, err) == 0){
+    if(strcmp(h -> ultimo -> info, err) == 0 || strcmp(h -> ultimo -> info, err2) == 0 || strcmp(h -> ultimo -> anterior -> info, err) != 0){
         printf("Comando invalido!\n");
+
     }else{
+        for(com *p = commits -> prim; p != NULL; p = p -> proximo){
+            if(strcmp(p -> info, h -> ultimo -> info) == 0){
+                printf("Commit '%s' ja feito, mude o nome.\n", p -> info);
+                return;
+            }
+        }
+
         guarda_info_commit(commits, h -> ultimo -> info, branch_atual);
         printf("Commit '%s' criado com sucesso!\n", commits -> ult -> info);
     }
@@ -144,6 +171,13 @@ void f_branch(header *h, header *branch, header *commits){
         }
 
     }else{
+        for(encad *p = branch -> primeiro; p != NULL; p = p -> proximo){
+            if(strcmp(p -> info, h -> ultimo -> info) == 0){
+                printf("Branch '%s' ja existe.\n", h -> ultimo -> info);
+                return;
+            }
+        }
+
         guarda_info(branch, h -> ultimo -> info);
         printf("Branch '%s' criada com sucesso!\n", branch -> ultimo -> info);
 
@@ -175,21 +209,39 @@ void f_checkout(header *h, header *branch){
     }
 }
 
-void f_merge(header *h, char *branch_atual, char *branch_merge){
-    printf("Mergeando branch '%s' com branch '%s'.\n", branch_atual, branch_merge);
+void f_merge(header *h, char *branch_atual, char *branch_merge, header *branch){
+    char *merge = "merge";
+    char *first = "First commit";
 
-    for(com *p = h -> prim; p != NULL; p = p -> proximo){
-        if(strcmp(p -> branch_do_commit, branch_merge) == 0){
-            guarda_info_commit(h, p -> info, branch_atual);
+    if(strcmp(branch_merge, merge) == 0){
+        printf("Comando invalido!\n");
+        return;
+
+    }else{
+        for(encad *p = branch -> primeiro; p != NULL; p = p -> proximo){
+            if(strcmp(branch_merge, p -> info) == 0){
+                printf("Mergeando branch '%s' com branch '%s'.\n", branch_atual, branch_merge);
+
+                for(com *p = h -> prim; p != NULL; p = p -> proximo){
+                    if(strcmp(p -> branch_do_commit, branch_merge) == 0){
+                        if(strcmp(p -> info, first) != 0){
+                            guarda_info_commit(h, p -> info, branch_atual);
+                        }
+                    }
+                }
+
+                for(com *p = h -> prim; p != NULL; p = p -> proximo){
+                    if(strcmp(p -> branch_do_commit, branch_atual) == 0){
+                        printf("%p %s\n", p, p -> info);
+                    }
+                }
+
+                return;
+            }
         }
+        printf("Branch '%s' nao existe!\n", branch_merge);
+        return;
     }
-
-    for(com *p = h -> prim; p != NULL; p = p -> proximo){
-        if(strcmp(p -> branch_do_commit, branch_atual) == 0){
-            printf("%p %s\n", p, p -> info);
-        }
-    }
-
 }
 
 void limpa(header *h){
