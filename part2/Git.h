@@ -51,7 +51,7 @@ void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_
 void f_clear(void);
 void f_commit(header *h, hash *commits, int *branch_atual, hash *branch);
 void f_branch(header *h, hash *branch, hash *commits);
-void f_checkout(header *h, hash *branch, int *branch_atual);
+void f_checkout(header *h, hash *branch, int *branch_atual, hash *commits);
 void f_merge(hash *h, int *branch_atual, char *branch_merge, hash *branch);
 void f_log(header *h, hash *commits, char *branch_atual);
 void limpa_hash(hash *h);

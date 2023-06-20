@@ -26,6 +26,8 @@ int main(){
         verifica_comando(linha, branch, commits, &brach_atual);
 
         limpa(linha);
+
+        printf("\n");
     }
     limpa_hash(branch);
     limpa_hash(commits);

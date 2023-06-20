@@ -1,5 +1,31 @@
 #include "Git.h"
 
+hash *inicia_hash(void){
+    hash *h = (hash*) malloc(sizeof(hash) * tam);
+
+    for(int i = 0; tam > i; i++){
+        (h + i) -> encad = cria_header();
+        (h + i) -> hist_commits = cria_header();
+    }
+
+    return h;
+}
+
+int funcao_hash(void){
+    int valor = gerarNumeroAleatorio();
+    
+    return valor % tam;
+
+}
+
+int gerarNumeroAleatorio(){
+    srand(time(NULL)); 
+
+    int numero = rand();
+
+    return numero;
+}
+
 header *cria_header(void){
     header *x = (header*) malloc(sizeof(header));
 
