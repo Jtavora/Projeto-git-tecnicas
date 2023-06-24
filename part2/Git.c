@@ -3,10 +3,8 @@
 int main(){
     char *quit = "quit";
     int cond = 1;
-    // header *branch = cria_header();
     hash *branch = inicia_hash();
     guarda_info_hash(branch, "Master");
-    // header *commits = cria_header();
     hash *commits = inicia_hash();
     guarda_info_commit_hash(commits, "First commit", "Master");
     int brach_atual = -1;

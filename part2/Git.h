@@ -2,7 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+
+#define BUFFER_LENGTH 4096
 #define tam 101
+#define PORT 4242
+#define LEN 4096
+
+/* Endereço do servidor */
+#define SERVER_ADDR "127.0.0.1"
 
 typedef struct hash{
     struct header *encad;
@@ -55,5 +71,6 @@ void f_checkout(header *h, hash *branch, int *branch_atual, hash *commits);
 void f_merge(hash *h, int *branch_atual, char *branch_merge, hash *branch);
 void f_log(header *h, hash *commits, char *branch_atual);
 void limpa_hash(hash *h);
+void f_push(hash *commit, hash *branchs);
 
 

@@ -320,6 +320,8 @@ void limpa_hash(hash *h){
         limpa((h + i) -> encad);
         limpa_commit((h + i) -> hist_commits);
     }
+
+    free(h);
 }
 
 void limpa(header *h){
@@ -364,4 +366,81 @@ void imprime_commits(hash *h){
         }
     }
 }
+
+// void f_push(hash *commit, hash *branchs)
+// {
+
+//     /* Socket do servidor */
+//     struct sockaddr_in server;
+//     /* Descritor de arquivo do cliente para o socket local */
+//     int sockfd;
+
+//     int len = sizeof(server);
+//     int slen;
+
+//     /* Buffer de recebimento */
+//     char buffer_in[LEN];
+//     /* Buffer de envio */
+//     char buffer_out[LEN];
+
+//     fprintf(stdout, "Iniciando Git ...\n");
+
+//     /*
+//      * Cria um socket para o cliente
+//      */
+//     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+//     {
+//         perror("Erro na criação do socket do cliente:");
+//         return EXIT_FAILURE;
+//     }
+//     fprintf(stdout, "Socket do Git criado com fd: %d\n", sockfd);
+
+//     /* Define as propriedades da conexão */
+//     server.sin_family = AF_INET;
+//     server.sin_port = htons(PORT);
+//     server.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+//     memset(server.sin_zero, 0x0, 8);
+
+//     /* Tenta se conectar ao servidor */
+//     if (connect(sockfd, (struct sockaddr *)&server, len) == -1)
+//     {
+//         perror("Não é possível conectar ao servidor");
+//         return EXIT_FAILURE;
+//     }
+
+//     /* Recebe a mensagem de apresentação do servidor */
+//     if ((slen = recv(sockfd, buffer_in, LEN, 0)) > 0)
+//     {
+//         buffer_in[slen + 1] = '\0';
+//         fprintf(stdout, "O servidor diz: %s\n", buffer_in);
+//     }
+
+//     /*
+//      * Comunica com o servidor até que a mensagem de saída seja recebida
+//      */
+//     while (true)
+//     {
+//         memset(buffer_in, 0x0, LEN);
+//         memset(buffer_out, 0x0, LEN);
+
+//         // Enviando o aluno para o servidor
+//         printf("Enviando o commit para o servidor...\n");
+//         send(sockfd, commit, sizeof(hash), 0);
+//         send(sockfd, "bye", 3, 0);
+        
+//         /* Recebe a resposta do servidor com a lista de alunos */
+//         slen = recv(sockfd, buffer_in, LEN, 0);
+//         printf("Resposta do servidor:\n%s\n", buffer_in);
+//         /* A mensagem 'bye' finaliza a conexão */
+//         if(strcmp(buffer_in, "bye") == 0)
+//             break;
+//     }
+
+//     /* Fecha a conexão com o servidor */
+//     close(sockfd);
+
+//     fprintf(stdout, "\nConexão fechada\n\n");
+
+//     return EXIT_SUCCESS;
+// }
 

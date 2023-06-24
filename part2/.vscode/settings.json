@@ -5,5 +5,12 @@
             "binaryPath": "/home/jtavora/Git-projeto/part2/prog.exe",
             "binaryArgs": []
         }
-    ]
+    ],
+    "files.associations": {
+        "inet.h": "c",
+        "types.h": "c",
+        "socket.h": "c",
+        "git.h": "c",
+        "stdio.h": "c"
+    }
 }
