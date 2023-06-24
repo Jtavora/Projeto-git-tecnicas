@@ -131,6 +131,7 @@ void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_
     char *merge = "merge";
     char *log = "log";
     char *clear = "clear";
+    char *push = "push";
 
     if(strcmp(comando -> primeiro -> info, clear) == 0 && strcmp(comando -> ultimo -> info, clear) == 0){
         f_clear();
@@ -153,6 +154,9 @@ void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_
 
         }else if(strcmp(comando -> primeiro -> proximo -> info, merge) == 0){
             f_merge(commits, branch_atual, comando -> ultimo -> info, branch);
+        
+        }else if(strcmp(comando -> primeiro -> proximo -> info, push) == 0){
+            f_push(commits);
 
         }else if(strcmp(comando -> primeiro -> proximo -> info, log) == 0){
             if(*branch_atual == -1)
@@ -367,80 +371,117 @@ void imprime_commits(hash *h){
     }
 }
 
-// void f_push(hash *commit, hash *branchs)
-// {
+void f_push(hash *commit)
+{
 
-//     /* Socket do servidor */
-//     struct sockaddr_in server;
-//     /* Descritor de arquivo do cliente para o socket local */
-//     int sockfd;
+    /* Socket do servidor */
+    struct sockaddr_in server;
+    /* Descritor de arquivo do cliente para o socket local */
+    int sockfd;
 
-//     int len = sizeof(server);
-//     int slen;
+    int len = sizeof(server);
+    int slen;
 
-//     /* Buffer de recebimento */
-//     char buffer_in[LEN];
-//     /* Buffer de envio */
-//     char buffer_out[LEN];
+    /* Buffer de recebimento */
+    char buffer_in[LEN];
+    /* Buffer de envio */
+    char buffer_out[LEN];
+    char *fodase;
 
-//     fprintf(stdout, "Iniciando Git ...\n");
+    fprintf(stdout, "Iniciando Git ...\n");
 
-//     /*
-//      * Cria um socket para o cliente
-//      */
-//     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-//     {
-//         perror("Erro na criação do socket do cliente:");
-//         return EXIT_FAILURE;
-//     }
-//     fprintf(stdout, "Socket do Git criado com fd: %d\n", sockfd);
+    /*
+     * Cria um socket para o cliente
+     */
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+        perror("Erro na criação do socket do cliente:");
+        return EXIT_FAILURE;
+    }
+    fprintf(stdout, "Socket do Git criado com fd: %d\n", sockfd);
 
-//     /* Define as propriedades da conexão */
-//     server.sin_family = AF_INET;
-//     server.sin_port = htons(PORT);
-//     server.sin_addr.s_addr = inet_addr(SERVER_ADDR);
-//     memset(server.sin_zero, 0x0, 8);
+    /* Define as propriedades da conexão */
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    server.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+    memset(server.sin_zero, 0x0, 8);
 
-//     /* Tenta se conectar ao servidor */
-//     if (connect(sockfd, (struct sockaddr *)&server, len) == -1)
-//     {
-//         perror("Não é possível conectar ao servidor");
-//         return EXIT_FAILURE;
-//     }
+    /* Tenta se conectar ao servidor */
+    if (connect(sockfd, (struct sockaddr *)&server, len) == -1)
+    {
+        perror("Não é possível conectar ao servidor");
+        return EXIT_FAILURE;
+    }
 
-//     /* Recebe a mensagem de apresentação do servidor */
-//     if ((slen = recv(sockfd, buffer_in, LEN, 0)) > 0)
-//     {
-//         buffer_in[slen + 1] = '\0';
-//         fprintf(stdout, "O servidor diz: %s\n", buffer_in);
-//     }
+    /* Recebe a mensagem de apresentação do servidor */
+    if ((slen = recv(sockfd, buffer_in, LEN, 0)) > 0)
+    {
+        buffer_in[slen + 1] = '\0';
+        fprintf(stdout, "Remoto diz: %s\n", buffer_in);
+    }
 
-//     /*
-//      * Comunica com o servidor até que a mensagem de saída seja recebida
-//      */
-//     while (true)
-//     {
-//         memset(buffer_in, 0x0, LEN);
-//         memset(buffer_out, 0x0, LEN);
+    /*
+     * Comunica com o servidor até que a mensagem de saída seja recebida
+     */
+    while (true)
+    {
+        memset(buffer_in, 0x0, LEN);
+        memset(buffer_out, 0x0, LEN);
 
-//         // Enviando o aluno para o servidor
-//         printf("Enviando o commit para o servidor...\n");
-//         send(sockfd, commit, sizeof(hash), 0);
-//         send(sockfd, "bye", 3, 0);
+        // Enviando o aluno para o servidor
+        printf("Enviando o commit para o servidor...\n");
+        for(int i = 0; tam > i; i++){
+            for(com *p = (commit + i) -> hist_commits -> prim; p != NULL; p = p -> proximo){
+                sprintf(buffer_out, "%d %s %s", p -> chave, p -> info, p -> branch_do_commit);
+                send(sockfd, buffer_out, sizeof(char), 0);
+            }
+        }
+        send(sockfd, "bye", sizeof(char), 0);
         
-//         /* Recebe a resposta do servidor com a lista de alunos */
-//         slen = recv(sockfd, buffer_in, LEN, 0);
-//         printf("Resposta do servidor:\n%s\n", buffer_in);
-//         /* A mensagem 'bye' finaliza a conexão */
-//         if(strcmp(buffer_in, "bye") == 0)
-//             break;
-//     }
+        /* Recebe a resposta do servidor com a lista de alunos */
+        slen = recv(sockfd, buffer_in, LEN, 0);
+        printf("Resposta do remoto:\n%s\n", buffer_in);
+        /* A mensagem 'bye' finaliza a conexão */
+        if(strcmp(buffer_in, "bye") == 0)
+            break;
+    }
 
-//     /* Fecha a conexão com o servidor */
-//     close(sockfd);
+    /* Fecha a conexão com o servidor */
+    close(sockfd);
 
-//     fprintf(stdout, "\nConexão fechada\n\n");
+    fprintf(stdout, "\nConexão fechada\n\n");
 
-//     return EXIT_SUCCESS;
-// }
+    return EXIT_SUCCESS;
+}
+
+void gravaTabelaHash(hash *tabela, char *msg) {
+    header* encadHeader = tabela->encad;
+    header* histCommitsHeader = tabela->hist_commits;
+
+    encad* encadNode = encadHeader->primeiro;
+    com* histCommitsNode = histCommitsHeader->prim;
+
+    // Percorre a lista encadeada
+    while (encadNode != NULL) {
+        char aux[100];
+        sprintf(aux, "Info: %s\n", encadNode->info);
+        strcat(msg, aux);
+        sprintf(aux, "Chave: %d\n\n", encadNode->chave);
+        strcat(msg, aux);
+        encadNode = encadNode->proximo;
+    }
+
+    // Percorre a lista de histórico de commits
+    while (histCommitsNode != NULL) {
+        char aux[100];
+        sprintf(aux, "Info: %s\n", histCommitsNode->info);
+        strcat(msg, aux);
+        sprintf(aux, "Branch do Commit: %s\n", histCommitsNode->branch_do_commit);
+        strcat(msg, aux);
+        sprintf(aux, "Chave: %d\n\n", histCommitsNode->chave);
+        strcat(msg, aux);
+        histCommitsNode = histCommitsNode->proximo;
+    }
+}
+
 
