@@ -123,7 +123,7 @@ void guarda_info_commit(header *h, char *info, char *branch_commit, int chave){
 
 }
 
-void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_atual){
+void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_atual, header **dados_pull){
     char *git = "git";
     char *branch_cod = "branch";
     char *commit = "commit";
@@ -132,6 +132,7 @@ void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_
     char *log = "log";
     char *clear = "clear";
     char *push = "push";
+    char *pull = "pull";
 
     if(strcmp(comando -> primeiro -> info, clear) == 0 && strcmp(comando -> ultimo -> info, clear) == 0){
         f_clear();
@@ -158,11 +159,14 @@ void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_
         }else if(strcmp(comando -> primeiro -> proximo -> info, push) == 0){
             f_push(commits);
 
+        }else if(strcmp(comando -> primeiro -> proximo -> info, pull) == 0){
+            *dados_pull = f_pull();
+
         }else if(strcmp(comando -> primeiro -> proximo -> info, log) == 0){
             if(*branch_atual == -1)
-                f_log(comando, commits, "Master");
+                f_log(comando, commits, "Master", *dados_pull);
             else
-                f_log(comando, commits, (branch + *branch_atual) -> encad -> primeiro -> info);
+                f_log(comando, commits, (branch + *branch_atual) -> encad -> primeiro -> info, *dados_pull);
 
         }else{
             printf("Comando nao reconhecido!\n");
@@ -206,12 +210,15 @@ void f_commit(header *h, hash *commits, int *branch_atual, hash *branch){
 
 }
 
-void f_log(header *h, hash *commits, char *branch_atual){
+void f_log(header *h, hash *commits, char *branch_atual, header *dados_pull){
     char *log = "log";
 
     if(strcmp(h -> ultimo -> info, log) == 0){
         printf("Branch_atual: %s\n", branch_atual);
         imprime_commits(commits);
+        if(dados_pull -> prim != NULL)
+            imprime_commits2(dados_pull);
+
     }else{
         printf("Comando invalido!\n");
     }
@@ -371,6 +378,15 @@ void imprime_commits(hash *h){
     }
 }
 
+void imprime_commits2(header *h){
+   
+    for(com *p = h -> prim; p != NULL; p = p -> proximo){   
+        printf("%d %s\n", p -> chave, p -> info);
+        printf("From branch: %s\n", p -> branch_do_commit);
+    }
+    
+}
+
 void f_push(hash *commit)
 {
 
@@ -386,7 +402,7 @@ void f_push(hash *commit)
     char buffer_in[LEN];
     /* Buffer de envio */
     char buffer_out[LEN];
-    char *fodase;
+    char *palavra;
 
     fprintf(stdout, "Iniciando Git ...\n");
 
@@ -423,28 +439,23 @@ void f_push(hash *commit)
     /*
      * Comunica com o servidor até que a mensagem de saída seja recebida
      */
-    while (true)
-    {
-        memset(buffer_in, 0x0, LEN);
-        memset(buffer_out, 0x0, LEN);
+    
+    memset(buffer_in, 0x0, LEN);
+    memset(buffer_out, 0x0, LEN);
 
-        // Enviando o aluno para o servidor
-        printf("Enviando o commit para o servidor...\n");
-        for(int i = 0; tam > i; i++){
-            for(com *p = (commit + i) -> hist_commits -> prim; p != NULL; p = p -> proximo){
-                sprintf(buffer_out, "%d %s %s", p -> chave, p -> info, p -> branch_do_commit);
-                send(sockfd, buffer_out, sizeof(char), 0);
-            }
+    // Enviando o aluno para o servidor
+    printf("Enviando o commit para o servidor...\n");
+    for(int i = 0; tam > i; i++){
+        for(com *p = (commit + i) -> hist_commits -> prim; p != NULL; p = p -> proximo){
+            palavra = (char*) malloc(BUFFER_LENGTH * sizeof(char));
+            sprintf(palavra, "%d %s %s", p -> chave, p -> info, p -> branch_do_commit);
+            printf("DADOS ENVIADOS: %s\n", palavra);
+            send(sockfd, palavra, BUFFER_LENGTH, 0);
         }
-        send(sockfd, "bye", sizeof(char), 0);
-        
-        /* Recebe a resposta do servidor com a lista de alunos */
-        slen = recv(sockfd, buffer_in, LEN, 0);
-        printf("Resposta do remoto:\n%s\n", buffer_in);
-        /* A mensagem 'bye' finaliza a conexão */
-        if(strcmp(buffer_in, "bye") == 0)
-            break;
     }
+    /* Recebe a resposta do servidor com a lista de alunos */
+    slen = recv(sockfd, buffer_in, LEN, 0);
+    printf("Resposta do remoto: %s\n", buffer_in);
 
     /* Fecha a conexão com o servidor */
     close(sockfd);
@@ -454,34 +465,150 @@ void f_push(hash *commit)
     return EXIT_SUCCESS;
 }
 
-void gravaTabelaHash(hash *tabela, char *msg) {
-    header* encadHeader = tabela->encad;
-    header* histCommitsHeader = tabela->hist_commits;
+header* guarda_server(header *h){
+    header *volta = cria_header();
+    
+    int chave;
+    chave = atoi(h->primeiro->info);
 
-    encad* encadNode = encadHeader->primeiro;
-    com* histCommitsNode = histCommitsHeader->prim;
-
-    // Percorre a lista encadeada
-    while (encadNode != NULL) {
-        char aux[100];
-        sprintf(aux, "Info: %s\n", encadNode->info);
-        strcat(msg, aux);
-        sprintf(aux, "Chave: %d\n\n", encadNode->chave);
-        strcat(msg, aux);
-        encadNode = encadNode->proximo;
-    }
-
-    // Percorre a lista de histórico de commits
-    while (histCommitsNode != NULL) {
-        char aux[100];
-        sprintf(aux, "Info: %s\n", histCommitsNode->info);
-        strcat(msg, aux);
-        sprintf(aux, "Branch do Commit: %s\n", histCommitsNode->branch_do_commit);
-        strcat(msg, aux);
-        sprintf(aux, "Chave: %d\n\n", histCommitsNode->chave);
-        strcat(msg, aux);
-        histCommitsNode = histCommitsNode->proximo;
-    }
+    guarda_info_commit(volta, h -> primeiro->proximo->info, h->ultimo->info, chave);
+    
+    return volta;
 }
 
+header* f_pull(void)
+{
 
+    /* Socket do servidor */
+    struct sockaddr_in server;
+    /* Descritor de arquivo do cliente para o socket local */
+    int sockfd;
+
+    int len = sizeof(server);
+    int slen;
+
+    /* Buffer de recebimento */
+    char buffer_in[LEN];
+    /* Buffer de envio */
+    char buffer_out[LEN];
+    char *palavra;
+    header *dados;
+    header *volta;
+
+    /*
+     * Cria um socket para o cliente
+     */
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+        perror("\n");
+        return EXIT_FAILURE;
+    }
+    fprintf(stdout, "\n", sockfd);
+
+    /* Define as propriedades da conexão */
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    server.sin_addr.s_addr = inet_addr(SERVER_ADDR);
+    memset(server.sin_zero, 0x0, 8);
+
+    /* Tenta se conectar ao servidor */
+    if (connect(sockfd, (struct sockaddr *)&server, len) == -1)
+    {
+        perror("Não é possível conectar ao servidor");
+        return EXIT_FAILURE;
+    }
+
+    /* Recebe a mensagem de apresentação do servidor */
+    if ((slen = recv(sockfd, buffer_in, LEN, 0)) > 0)
+    {
+        buffer_in[slen + 1] = '\0';
+        fprintf(stdout, "Remoto diz: %s\n", buffer_in);
+    }
+
+    /*
+     * Comunica com o servidor até que a mensagem de saída seja recebida
+     */
+    while(true)
+    {
+        memset(buffer_in, 0x0, LEN);
+        memset(buffer_out, 0x0, LEN);
+        send(sockfd, "pull", BUFFER_LENGTH, 0);
+        int received_bytes = recv(sockfd, buffer_in, BUFFER_LENGTH, 0);
+        
+        if(received_bytes == 0){
+            printf("Erro ao receber dados do servidor\n");
+            return;
+        }else if(received_bytes == -1){
+            printf("Erro na conexão com o servidor\n");
+            return;
+        }else if(received_bytes == BUFFER_LENGTH){
+            // memcpy(dados, buffer_in, sizeof(header));
+            // imprime_commits2(dados);
+            memset(buffer_out, 0x0, LEN);
+            strncpy(buffer_out, buffer_in, received_bytes);
+            buffer_out[received_bytes] = '\0';
+
+            // Imprimir os dados do aluno
+            printf("DADOS DO COMMIT RECEBIDO: %s\n", buffer_out);
+            // printf("%s\n", buffer_out);
+            header *comando = separa_string(buffer_out);
+            volta = guarda_server(comando);
+            limpa(comando);
+            imprime_commits2(volta);
+
+
+        }else{
+            printf("Recebendo dados do servidor...\n");
+            printf("Dados recebidos: %s\n", buffer_in);
+        }
+
+        if(strcmp(buffer_in, "Commit recebido!"))
+            break;
+        
+    }
+
+    close(sockfd);
+
+    fprintf(stdout, "\nConexão fechada\n\n");
+
+    return volta;
+    
+    // memset(buffer_in, 0x0, LEN);
+    // memset(buffer_out, 0x0, LEN);
+    // send(sockfd, "pull", BUFFER_LENGTH, 0);
+    // int received_bytes = recv(sockfd, buffer_in, BUFFER_LENGTH, 0);
+    
+    // if(received_bytes == 0){
+    //     printf("Erro ao receber dados do servidor\n");
+    //     return;
+    // }else if(received_bytes == -1){
+    //     printf("Erro na conexão com o servidor\n");
+    //     return;
+    // }else if(received_bytes == BUFFER_LENGTH){
+    //     // memcpy(dados, buffer_in, sizeof(header));
+    //     // imprime_commits2(dados);
+    //     memset(buffer_out, 0x0, LEN);
+    //     strncpy(buffer_out, buffer_in, received_bytes);
+    //     buffer_out[received_bytes] = '\0';
+
+    //     // Imprimir os dados do aluno
+    //     printf("DADOS DO COMMIT RECEBIDO: %s\n", buffer_out);
+    //     // printf("%s\n", buffer_out);
+    //     header *comando = separa_string(buffer_out);
+    //     volta = guarda_server(comando);
+    //     limpa(comando);
+    //     imprime_commits2(volta);
+
+
+    // }else{
+    //     printf("Recebendo dados do servidor...\n");
+    //     printf("Dados recebidos: %s\n", buffer_in);
+    // }
+
+    // /* Fecha a conexão com o servidor */
+    // close(sockfd);
+
+    // fprintf(stdout, "\nConexão fechada\n\n");
+
+    // return volta;
+}

@@ -4,9 +4,10 @@ int main(){
     char *quit = "quit";
     int cond = 1;
     hash *branch = inicia_hash();
+    header *dados_pull = cria_header();
     guarda_info_hash(branch, "Master");
     hash *commits = inicia_hash();
-    guarda_info_commit_hash(commits, "First commit", "Master");
+    guarda_info_commit_hash(commits, "FirstCommit", "Master");
     int brach_atual = -1;
 
     while(cond == 1){
@@ -21,7 +22,7 @@ int main(){
 
         header *linha = separa_string(comando);
 
-        verifica_comando(linha, branch, commits, &brach_atual);
+        verifica_comando(linha, branch, commits, &brach_atual, &dados_pull);
 
         limpa(linha);
 

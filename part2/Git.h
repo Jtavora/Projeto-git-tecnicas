@@ -13,7 +13,7 @@
 
 
 #define BUFFER_LENGTH 1024
-#define tam 3
+#define tam 101
 #define PORT 8080
 #define LEN 4096
 #define SERVER_ADDR "127.0.0.1"
@@ -61,16 +61,18 @@ void imprime_commits(hash *h);
 header *separa_string(char *c);
 void guarda_info(header *h, char *info, int chave);
 void guarda_info_commit(header *h, char *info, char *branch_commit, int chave);
-void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_atual);
+void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_atual, header **dados_pull);
 void f_clear(void);
 void f_commit(header *h, hash *commits, int *branch_atual, hash *branch);
 void f_branch(header *h, hash *branch, hash *commits);
 void f_checkout(header *h, hash *branch, int *branch_atual, hash *commits);
 void f_merge(hash *h, int *branch_atual, char *branch_merge, hash *branch);
-void f_log(header *h, hash *commits, char *branch_atual);
+void f_log(header *h, hash *commits, char *branch_atual, header *dados_pull);
 void limpa_hash(hash *h);
 void f_push(hash *commit);
-void gravaTabelaHash(hash *tabela, char *msg);
-
+header* f_pull(void);
+header* guarda_server(header *h);
+void imprime_commits2(header *h);
+void guarda_manual(header *dados, hash *commits, hash *branchs);
 
 

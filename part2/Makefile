@@ -1,6 +1,6 @@
 programa: arq.o
-	gcc func.o git.o -o prog.exe
-	gcc func.o serv.o -o prog2.exe
+	gcc func.o git.o -o prog2.exe
+	gcc func.o serv.o -o prog.exe
 
 arq.o: Git.h Git.c Functions.c serv.c 
 	gcc -c -g Git.c -o git.o
