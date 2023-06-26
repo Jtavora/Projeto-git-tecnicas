@@ -161,6 +161,7 @@ void verifica_comando(header *comando, hash *branch, hash *commits, int *branch_
 
         }else if(strcmp(comando -> primeiro -> proximo -> info, pull) == 0){
             *dados_pull = f_pull();
+            guarda_branch(*dados_pull, branch);
 
         }else if(strcmp(comando -> primeiro -> proximo -> info, log) == 0){
             if(*branch_atual == -1)
@@ -231,7 +232,8 @@ void f_branch(header *h, hash *branch, hash *commits){
     if(strcmp(h -> ultimo -> info, branch_cod) == 0){
         for(int i = 0; tam > i; i++){
             for(encad *p = (branch + i) -> encad -> primeiro; p != NULL; p = p -> proximo){
-                printf("%d %s\n", p -> chave, p -> info);
+                printf("%d %s\n", p -> chave, p -> info);  
+                
             }
         }
     }else{
@@ -542,20 +544,19 @@ header* f_pull(void)
     /*
      * Comunica com o servidor até que a mensagem de saída seja recebida
      */
+    send(sockfd, "pull", BUFFER_LENGTH, 0);
     while(true)
     {
-        memset(buffer_in, 0x0, LEN);
         memset(buffer_out, 0x0, LEN);
-        send(sockfd, "pull", BUFFER_LENGTH, 0);
         int received_bytes = recv(sockfd, buffer_in, BUFFER_LENGTH, 0);
-        
+
         if(received_bytes == 0){
             printf("Erro ao receber dados do servidor\n");
             return;
         }else if(received_bytes == -1){
             printf("Erro na conexão com o servidor\n");
             return;
-        }else if(received_bytes == BUFFER_LENGTH && strcmp(buffer_in, "Commit recebido!") != 0){
+        }else if(received_bytes == BUFFER_LENGTH && strcmp(buffer_in, "Commit recebido!") != 0 && strcmp(buffer_in, "Repositório remoto iniciado!") != 0){
             // memcpy(dados, buffer_in, sizeof(header));
             // imprime_commits2(dados);
             memset(buffer_out, 0x0, LEN);
@@ -584,4 +585,10 @@ header* f_pull(void)
     fprintf(stdout, "\nConexão fechada\n\n");
 
     return volta;
+}
+
+void guarda_branch(header *h, hash *branch){
+    for(com *p = h -> prim; p != NULL; p = p -> proximo){
+        guarda_info_hash(branch, p -> branch_do_commit);
+    }
 }

@@ -63,7 +63,7 @@ int main(void) {
         }
 
         /* Copia para o buffer a mensagem de boas-vindas */
-        strcpy(buffer, "Repositório remoto iniciado!\n\0");
+        strcpy(buffer, "Repositório remoto iniciado!");
 
         /* Envia a mensagem para o cliente */
         if (send(clientfd, buffer, strlen(buffer), 0) && strcmp(buffer, "pull") != 0){
