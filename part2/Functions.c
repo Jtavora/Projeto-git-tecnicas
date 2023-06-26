@@ -379,7 +379,10 @@ void imprime_commits(hash *h){
 }
 
 void imprime_commits2(header *h){
-   
+    if(h -> prim == NULL || h == NULL)
+        return;
+    
+
     for(com *p = h -> prim; p != NULL; p = p -> proximo){   
         printf("%d %s\n", p -> chave, p -> info);
         printf("From branch: %s\n", p -> branch_do_commit);
@@ -454,13 +457,16 @@ void f_push(hash *commit)
         }
     }
     /* Recebe a resposta do servidor com a lista de alunos */
+
     slen = recv(sockfd, buffer_in, LEN, 0);
-    printf("Resposta do remoto: %s\n", buffer_in);
+    if(strcmp(buffer_in, "Commit recebido!") == 0){
+        printf("Resposta do remoto: %s\n", buffer_in);
 
-    /* Fecha a conexão com o servidor */
-    close(sockfd);
+        /* Fecha a conexão com o servidor */
+        close(sockfd);
 
-    fprintf(stdout, "\nConexão fechada\n\n");
+        fprintf(stdout, "\nConexão fechada\n\n");
+    }
 
     return EXIT_SUCCESS;
 }
@@ -472,8 +478,20 @@ header* guarda_server(header *h){
     chave = atoi(h->primeiro->info);
 
     guarda_info_commit(volta, h -> primeiro->proximo->info, h->ultimo->info, chave);
-    
+
     return volta;
+}
+
+void guarda_server2(header *h, int *i, header *dados_salvos){
+    int j = *i;
+    
+    int chave;
+    chave = atoi(h->primeiro->info);
+
+    guarda_info_commit(dados_salvos, h -> primeiro->proximo->info, h->ultimo->info, chave);
+
+    j++;
+    *i = j;
 }
 
 header* f_pull(void)
@@ -493,7 +511,8 @@ header* f_pull(void)
     char buffer_out[LEN];
     char *palavra;
     header *dados;
-    header *volta;
+    header *volta = cria_header();
+    int i = 0;
 
     /*
      * Cria um socket para o cliente
@@ -518,12 +537,7 @@ header* f_pull(void)
         return EXIT_FAILURE;
     }
 
-    /* Recebe a mensagem de apresentação do servidor */
-    if ((slen = recv(sockfd, buffer_in, LEN, 0)) > 0)
-    {
-        buffer_in[slen + 1] = '\0';
-        fprintf(stdout, "Remoto diz: %s\n", buffer_in);
-    }
+    /* Recebe a mensagem de apresentação do servidor *
 
     /*
      * Comunica com o servidor até que a mensagem de saída seja recebida
@@ -541,7 +555,7 @@ header* f_pull(void)
         }else if(received_bytes == -1){
             printf("Erro na conexão com o servidor\n");
             return;
-        }else if(received_bytes == BUFFER_LENGTH){
+        }else if(received_bytes == BUFFER_LENGTH && strcmp(buffer_in, "Commit recebido!") != 0){
             // memcpy(dados, buffer_in, sizeof(header));
             // imprime_commits2(dados);
             memset(buffer_out, 0x0, LEN);
@@ -552,17 +566,15 @@ header* f_pull(void)
             printf("DADOS DO COMMIT RECEBIDO: %s\n", buffer_out);
             // printf("%s\n", buffer_out);
             header *comando = separa_string(buffer_out);
-            volta = guarda_server(comando);
+            guarda_server2(comando, &i, volta);
             limpa(comando);
-            imprime_commits2(volta);
-
 
         }else{
             printf("Recebendo dados do servidor...\n");
             printf("Dados recebidos: %s\n", buffer_in);
         }
 
-        if(strcmp(buffer_in, "Commit recebido!"))
+        if(strcmp(buffer_in, "Commit recebido!") == 0)
             break;
         
     }
@@ -572,43 +584,4 @@ header* f_pull(void)
     fprintf(stdout, "\nConexão fechada\n\n");
 
     return volta;
-    
-    // memset(buffer_in, 0x0, LEN);
-    // memset(buffer_out, 0x0, LEN);
-    // send(sockfd, "pull", BUFFER_LENGTH, 0);
-    // int received_bytes = recv(sockfd, buffer_in, BUFFER_LENGTH, 0);
-    
-    // if(received_bytes == 0){
-    //     printf("Erro ao receber dados do servidor\n");
-    //     return;
-    // }else if(received_bytes == -1){
-    //     printf("Erro na conexão com o servidor\n");
-    //     return;
-    // }else if(received_bytes == BUFFER_LENGTH){
-    //     // memcpy(dados, buffer_in, sizeof(header));
-    //     // imprime_commits2(dados);
-    //     memset(buffer_out, 0x0, LEN);
-    //     strncpy(buffer_out, buffer_in, received_bytes);
-    //     buffer_out[received_bytes] = '\0';
-
-    //     // Imprimir os dados do aluno
-    //     printf("DADOS DO COMMIT RECEBIDO: %s\n", buffer_out);
-    //     // printf("%s\n", buffer_out);
-    //     header *comando = separa_string(buffer_out);
-    //     volta = guarda_server(comando);
-    //     limpa(comando);
-    //     imprime_commits2(volta);
-
-
-    // }else{
-    //     printf("Recebendo dados do servidor...\n");
-    //     printf("Dados recebidos: %s\n", buffer_in);
-    // }
-
-    // /* Fecha a conexão com o servidor */
-    // close(sockfd);
-
-    // fprintf(stdout, "\nConexão fechada\n\n");
-
-    // return volta;
 }

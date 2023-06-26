@@ -11,8 +11,9 @@ int main(void) {
 
     char buffer[BUFFER_LENGTH];
     char comi[BUFFER_LENGTH];
-    header *dados_salvos;
+    header *dados_salvos = cria_header();
     char palavra[BUFFER_LENGTH];
+    int i = 0;
 
     while (1) {
         printf("-------------------------------------------------------------------------------------------\n");
@@ -65,7 +66,7 @@ int main(void) {
         strcpy(buffer, "Repositório remoto iniciado!\n\0");
 
         /* Envia a mensagem para o cliente */
-        if (send(clientfd, buffer, strlen(buffer), 0)) {
+        if (send(clientfd, buffer, strlen(buffer), 0) && strcmp(buffer, "pull") != 0){
             fprintf(stdout, "\nCliente conectado.\nAguardando acao do cliente ...\n\n");
 
             /* Comunica com o cliente até receber a mensagem "bye" */
@@ -89,18 +90,13 @@ int main(void) {
                     send(clientfd, "Commit recebido!", BUFFER_LENGTH, 0);
 
                 }else if (strcmp(buffer, "pull") == 0) {
-                    // memset(buffer, 0x0, BUFFER_LENGTH);
-                    // imprime_commits2(dados_salvos);
-                    // printf("\n");
-                    // send(clientfd, dados_salvos, sizeof(header), 0);
-                    for(com *p = dados_salvos -> prim; p != NULL; p = p -> proximo){
-                        *palavra = (char*) malloc(BUFFER_LENGTH * sizeof(char));
-                        sprintf(palavra, "%d %s %s", p -> chave, p -> info, p -> branch_do_commit);
+                   for (com *p = dados_salvos->prim; p != NULL; p = p->proximo) {
+                        sprintf(palavra, "%d %s %s", p->chave, p->info, p->branch_do_commit);
                         printf("DADOS DO COMMIT ENVIADO: %s\n", palavra);
                         send(clientfd, palavra, BUFFER_LENGTH, 0);
                     }
                     send(clientfd, "Commit recebido!", BUFFER_LENGTH, 0);
-                
+
                 }else {
                     strncpy(comi, buffer, received_bytes);
                     comi[received_bytes] = '\0';
@@ -109,15 +105,13 @@ int main(void) {
                     printf("DADOS DO COMMIT RECEBIDO: ");
                     printf("%s\n", comi);
                     header *comando = separa_string(comi);
-                    dados_salvos = guarda_server(comando);
+                    guarda_server2(comando, &i, dados_salvos);
                     limpa(comando);
-                    send(clientfd, "Commit recebido!", BUFFER_LENGTH, 0);
-
-                    // Enviar a resposta para o cliente
-                    if (send(clientfd, buffer, strlen(buffer), 0) == -1) {
-                        perror("Falha ao enviar resposta para o cliente");
-                        break;
+                    if(i == 3){
+                        send(clientfd, "Commit recebido!", BUFFER_LENGTH, 0);
+                        i = 0;
                     }
+                    // Enviar a resposta para o cliente
                 }
             } while (1);
         }

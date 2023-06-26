@@ -74,5 +74,6 @@ header* f_pull(void);
 header* guarda_server(header *h);
 void imprime_commits2(header *h);
 void guarda_manual(header *dados, hash *commits, hash *branchs);
+void guarda_server2(header *h, int *i, header *dados_salvos);
 
 

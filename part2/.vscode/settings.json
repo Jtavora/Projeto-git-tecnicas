@@ -4,6 +4,11 @@
             "cwd": "/home/jtavora/Git-projeto/part2",
             "binaryPath": "/home/jtavora/Git-projeto/part2/prog.exe",
             "binaryArgs": []
+        },
+        {
+            "cwd": "/home/jtavora/gittt/part2",
+            "binaryPath": "/home/jtavora/gittt/part2/prog.exe",
+            "binaryArgs": []
         }
     ],
     "files.associations": {
