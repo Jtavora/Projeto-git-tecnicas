@@ -96,6 +96,7 @@ int main(void) {
                         send(clientfd, palavra, BUFFER_LENGTH, 0);
                     }
                     send(clientfd, "Commit recebido!", BUFFER_LENGTH, 0);
+                    break;
 
                 }else {
                     strncpy(comi, buffer, received_bytes);
